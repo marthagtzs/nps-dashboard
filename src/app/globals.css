@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-nunito);
+  --color-background: #f8f9fb;
+  --color-foreground: #171717;
+}
+
+:root {
+  --nps-primary: #2a8fc7;
+  --nps-promoter: #27ae60;
+  --nps-passive: #e09400;
+  --nps-detractor: #ee5a5a;
+  --nps-bg: #f8f9fb;
+}
+
+body {
+  background: var(--nps-bg);
+  color: var(--color-foreground);
+}
