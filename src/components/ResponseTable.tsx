@@ -8,7 +8,7 @@ interface ResponseTableProps {
   responses: NpsResponse[];
 }
 
-type SortKey = 'date' | 'score' | 'category' | 'highestPlanType' | 'userLocale';
+type SortKey = 'date' | 'score' | 'category' | 'highestPlanType' | 'userLocale' | 'os';
 type SortDir = 'asc' | 'desc';
 
 const categoryBadge = {
@@ -42,6 +42,9 @@ export default function ResponseTable({ responses }: ResponseTableProps) {
           break;
         case 'userLocale':
           cmp = a.userLocale.localeCompare(b.userLocale);
+          break;
+        case 'os':
+          cmp = a.os.localeCompare(b.os);
           break;
       }
       return sortDir === 'asc' ? cmp : -cmp;
@@ -118,6 +121,12 @@ export default function ResponseTable({ responses }: ResponseTableProps) {
               >
                 Locale <SortIcon col="userLocale" />
               </th>
+              <th
+                className="px-4 py-3 font-medium text-gray-600 cursor-pointer hover:text-[#2a8fc7]"
+                onClick={() => toggleSort('os')}
+              >
+                OS <SortIcon col="os" />
+              </th>
               <th className="px-4 py-3 font-medium text-gray-600">Identity</th>
             </tr>
           </thead>
@@ -141,6 +150,7 @@ export default function ResponseTable({ responses }: ResponseTableProps) {
                 </td>
                 <td className="px-4 py-3 text-gray-600 capitalize">{r.highestPlanType || '—'}</td>
                 <td className="px-4 py-3 text-gray-600 uppercase">{r.userLocale || '—'}</td>
+                <td className="px-4 py-3 text-gray-600">{r.os || '—'}</td>
                 <td className="px-4 py-3 text-gray-500 truncate max-w-[200px]">
                   {r.identity || '—'}
                 </td>
@@ -148,7 +158,7 @@ export default function ResponseTable({ responses }: ResponseTableProps) {
             ))}
             {paged.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
+                <td colSpan={7} className="px-4 py-8 text-center text-gray-400">
                   No responses match the current filters
                 </td>
               </tr>

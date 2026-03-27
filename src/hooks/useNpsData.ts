@@ -21,6 +21,7 @@ const defaultFilters: NpsFilters = {
   planType: '',
   locale: '',
   category: '',
+  os: '',
 };
 
 export function useNpsData(): UseNpsDataReturn {

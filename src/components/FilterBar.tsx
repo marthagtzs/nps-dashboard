@@ -8,6 +8,7 @@ interface FilterBarProps {
   planTypes: string[];
   locales: string[];
   categories: string[];
+  osValues: string[];
 }
 
 export default function FilterBar({
@@ -16,6 +17,7 @@ export default function FilterBar({
   planTypes,
   locales,
   categories,
+  osValues,
 }: FilterBarProps) {
   const update = (key: keyof NpsFilters, value: string) => {
     onFiltersChange({ ...filters, [key]: value });
@@ -28,6 +30,7 @@ export default function FilterBar({
       planType: '',
       locale: '',
       category: '',
+      os: '',
     });
   };
 
@@ -51,7 +54,7 @@ export default function FilterBar({
           </button>
         )}
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         <div>
           <label className="block text-xs text-gray-500 mb-1">Date From</label>
           <input
@@ -111,6 +114,21 @@ export default function FilterBar({
             {categories.map((c) => (
               <option key={c} value={c}>
                 {c}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">OS</label>
+          <select
+            value={filters.os}
+            onChange={(e) => update('os', e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2a8fc7] focus:border-transparent bg-white"
+          >
+            <option value="">All OS</option>
+            {osValues.map((o) => (
+              <option key={o} value={o}>
+                {o}
               </option>
             ))}
           </select>

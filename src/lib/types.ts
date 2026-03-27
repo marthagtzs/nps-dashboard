@@ -7,6 +7,7 @@ export interface NpsResponse {
   dedupKey: string;
   highestPlanType: string;
   userLocale: string;
+  os: string;
 }
 
 export interface NpsFilters {
@@ -15,6 +16,7 @@ export interface NpsFilters {
   planType: string;
   locale: string;
   category: string;
+  os: string;
 }
 
 export interface NpsStats {

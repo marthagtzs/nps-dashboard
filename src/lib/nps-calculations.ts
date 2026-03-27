@@ -20,6 +20,9 @@ export function filterResponses(responses: NpsResponse[], filters: NpsFilters): 
     if (filters.category && r.category !== filters.category) {
       return false;
     }
+    if (filters.os && r.os !== filters.os) {
+      return false;
+    }
     return true;
   });
 }
@@ -130,5 +133,6 @@ export function getUniqueValues(responses: NpsResponse[]) {
   const planTypes = [...new Set(responses.map((r) => r.highestPlanType).filter(Boolean))].sort();
   const locales = [...new Set(responses.map((r) => r.userLocale).filter(Boolean))].sort();
   const categories: string[] = ['Promoter', 'Passive', 'Detractor'];
-  return { planTypes, locales, categories };
+  const osValues = [...new Set(responses.map((r) => r.os).filter(Boolean))].sort();
+  return { planTypes, locales, categories, osValues };
 }
