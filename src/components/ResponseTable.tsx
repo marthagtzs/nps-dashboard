@@ -8,7 +8,7 @@ interface ResponseTableProps {
   responses: NpsResponse[];
 }
 
-type SortKey = 'date' | 'score' | 'category' | 'highestPlanType' | 'userLocale' | 'os';
+type SortKey = 'date' | 'score' | 'category' | 'highestPlanType' | 'userLocale' | 'os' | 'comment';
 type SortDir = 'asc' | 'desc';
 
 const categoryBadge = {
@@ -45,6 +45,9 @@ export default function ResponseTable({ responses }: ResponseTableProps) {
           break;
         case 'os':
           cmp = a.os.localeCompare(b.os);
+          break;
+        case 'comment':
+          cmp = (a.comment || '').localeCompare(b.comment || '');
           break;
       }
       return sortDir === 'asc' ? cmp : -cmp;
@@ -128,6 +131,12 @@ export default function ResponseTable({ responses }: ResponseTableProps) {
                 OS <SortIcon col="os" />
               </th>
               <th className="px-4 py-3 font-medium text-gray-600">Identity</th>
+              <th
+                className="px-4 py-3 font-medium text-gray-600 cursor-pointer hover:text-[#2a8fc7]"
+                onClick={() => toggleSort('comment')}
+              >
+                Comment <SortIcon col="comment" />
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -151,14 +160,21 @@ export default function ResponseTable({ responses }: ResponseTableProps) {
                 <td className="px-4 py-3 text-gray-600 capitalize">{r.highestPlanType || '—'}</td>
                 <td className="px-4 py-3 text-gray-600 uppercase">{r.userLocale || '—'}</td>
                 <td className="px-4 py-3 text-gray-600">{r.os || '—'}</td>
-                <td className="px-4 py-3 text-gray-500 truncate max-w-[200px]">
+                <td className="px-4 py-3 text-gray-500 truncate max-w-[150px]">
                   {r.identity || '—'}
+                </td>
+                <td className="px-4 py-3 text-gray-600 max-w-[300px]">
+                  {r.comment ? (
+                    <span className="line-clamp-2 text-xs leading-relaxed" title={r.comment}>{r.comment}</span>
+                  ) : (
+                    <span className="text-gray-300">—</span>
+                  )}
                 </td>
               </tr>
             ))}
             {paged.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-gray-400">
+                <td colSpan={8} className="px-4 py-8 text-center text-gray-400">
                   No responses match the current filters
                 </td>
               </tr>

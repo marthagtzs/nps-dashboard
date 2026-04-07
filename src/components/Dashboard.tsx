@@ -15,7 +15,6 @@ import NpsOverTimeChart from './NpsOverTimeChart';
 import CategoryDonutChart from './CategoryDonutChart';
 import ScoresByPlanChart from './ScoresByPlanChart';
 import ResponseTable from './ResponseTable';
-import CommentsPanel from './CommentsPanel';
 
 export default function Dashboard() {
   const { responses, filters, setFilters, loading, error, lastUpdated, refresh } =
@@ -138,15 +137,8 @@ export default function Dashboard() {
         {/* Plan Type Chart */}
         <ScoresByPlanChart data={planStats} />
 
-        {/* Table + Comments */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <ResponseTable responses={filtered} />
-          </div>
-          <div>
-            <CommentsPanel responses={filtered} />
-          </div>
-        </div>
+        {/* Responses Table */}
+        <ResponseTable responses={filtered} />
       </main>
     </div>
   );
