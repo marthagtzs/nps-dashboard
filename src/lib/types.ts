@@ -10,9 +10,12 @@ export interface NpsResponse {
   os: string;
 }
 
+export type TimeRangePreset = 'today' | '7d' | '30d' | '90d' | 'thisMonth' | 'lastMonth' | '';
+
 export interface NpsFilters {
   dateFrom: string;
   dateTo: string;
+  timeRange: TimeRangePreset;
   planType: string;
   locale: string;
   category: string;

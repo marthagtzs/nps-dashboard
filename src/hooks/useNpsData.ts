@@ -18,6 +18,7 @@ interface UseNpsDataReturn {
 const defaultFilters: NpsFilters = {
   dateFrom: '',
   dateTo: '',
+  timeRange: '',
   planType: '',
   locale: '',
   category: '',
