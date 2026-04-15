@@ -10,6 +10,7 @@ interface FilterBarProps {
   locales: string[];
   categories: string[];
   osValues: string[];
+  appVersions: string[];
 }
 
 function getPresetDates(preset: TimeRangePreset): { dateFrom: string; dateTo: string } {
@@ -52,6 +53,7 @@ export default function FilterBar({
   locales,
   categories,
   osValues,
+  appVersions,
 }: FilterBarProps) {
   const update = (key: keyof NpsFilters, value: string) => {
     if (key === 'dateFrom' || key === 'dateTo') {
@@ -79,6 +81,7 @@ export default function FilterBar({
       locale: '',
       category: '',
       os: '',
+      appVersion: '',
     });
   };
 
@@ -120,7 +123,7 @@ export default function FilterBar({
         ))}
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3">
         <div>
           <label className="block text-xs text-gray-500 mb-1">Date From</label>
           <input
@@ -195,6 +198,21 @@ export default function FilterBar({
             {osValues.map((o) => (
               <option key={o} value={o}>
                 {o}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">App Version</label>
+          <select
+            value={filters.appVersion}
+            onChange={(e) => update('appVersion', e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2a8fc7] focus:border-transparent bg-white"
+          >
+            <option value="">All Versions</option>
+            {appVersions.map((v) => (
+              <option key={v} value={v}>
+                {v}
               </option>
             ))}
           </select>

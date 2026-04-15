@@ -21,7 +21,7 @@ export default function Dashboard() {
   const { responses, filters, setFilters, loading, error, lastUpdated, refresh } =
     useNpsData();
 
-  const { planTypes, locales, categories, osValues } = useMemo(
+  const { planTypes, locales, categories, osValues, appVersions } = useMemo(
     () => getUniqueValues(responses),
     [responses]
   );
@@ -123,6 +123,7 @@ export default function Dashboard() {
           locales={locales}
           categories={categories}
           osValues={osValues}
+          appVersions={appVersions}
         />
 
         {/* Charts Row */}

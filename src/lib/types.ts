@@ -8,6 +8,7 @@ export interface NpsResponse {
   highestPlanType: string;
   userLocale: string;
   os: string;
+  appVersion: string;
 }
 
 export type TimeRangePreset = 'today' | '7d' | '30d' | '90d' | 'thisMonth' | 'lastMonth' | '';
@@ -20,6 +21,7 @@ export interface NpsFilters {
   locale: string;
   category: string;
   os: string;
+  appVersion: string;
 }
 
 export interface NpsStats {

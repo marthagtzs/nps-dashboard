@@ -9,7 +9,7 @@ export async function fetchNpsData(): Promise<NpsResponse[]> {
     throw new Error('Missing GOOGLE_SHEET_ID or GOOGLE_API_KEY environment variables');
   }
 
-  const range = encodeURIComponent(`${SHEET_NAME}!A:I`);
+  const range = encodeURIComponent(`${SHEET_NAME}!A:J`);
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}?key=${API_KEY}`;
 
   const res = await fetch(url, {
@@ -56,5 +56,6 @@ function parseRow(row: string[]): NpsResponse | null {
     highestPlanType: (row[6] || '').trim().toLowerCase(),
     userLocale: (row[7] || '').trim().toLowerCase(),
     os: (row[8] || '').trim(),
+    appVersion: (row[9] || '').trim(),
   };
 }

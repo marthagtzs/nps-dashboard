@@ -23,6 +23,7 @@ const defaultFilters: NpsFilters = {
   locale: '',
   category: '',
   os: '',
+  appVersion: '',
 };
 
 export function useNpsData(): UseNpsDataReturn {

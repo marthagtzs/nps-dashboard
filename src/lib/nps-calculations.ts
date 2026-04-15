@@ -23,6 +23,9 @@ export function filterResponses(responses: NpsResponse[], filters: NpsFilters): 
     if (filters.os && r.os !== filters.os) {
       return false;
     }
+    if (filters.appVersion && r.appVersion !== filters.appVersion) {
+      return false;
+    }
     return true;
   });
 }
@@ -134,5 +137,8 @@ export function getUniqueValues(responses: NpsResponse[]) {
   const locales = [...new Set(responses.map((r) => r.userLocale).filter(Boolean))].sort();
   const categories: string[] = ['Promoter', 'Passive', 'Detractor'];
   const osValues = [...new Set(responses.map((r) => r.os).filter(Boolean))].sort();
-  return { planTypes, locales, categories, osValues };
+  const appVersions = [...new Set(responses.map((r) => r.appVersion).filter(Boolean))].sort((a, b) =>
+    b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' })
+  );
+  return { planTypes, locales, categories, osValues, appVersions };
 }
