@@ -39,13 +39,18 @@ const CATEGORIES: CategoryDef[] = [
     patterns: words(
       'bug', 'error', 'crash', 'broken', 'glitch', 'freeze', 'freezes', 'stuck',
       'slow', 'loading', 'lag', 'laggy',
-      // Phrases
+      // Phrases — broken functionality or can't-do complaints
       'doesnt work', "doesn't work", 'not working', 'failed',
+      "can't change", "cant change", "can't use", "cant use",
+      "can't find", "cant find", "unable to", "won't let",
+      "no me deja cambiar", "no puedo cambiar",
       // Spanish
       'falla', 'fallo', 'no funciona', 'no sirve', 'se traba', 'lento', 'lenta',
       'se cierra', 'se cae', 'no carga', 'no abre', 'tarda',
+      'no me deja', 'no puedo', 'no se puede', 'no permite',
       // Portuguese
       'travando', 'travou', 'não funciona', 'não abre', 'erro',
+      'não consigo', 'não deixa',
     ),
   },
   {
@@ -83,7 +88,7 @@ const CATEGORIES: CategoryDef[] = [
     patterns: words(
       'activity', 'activities', 'article', 'articles', 'video', 'videos',
       'lesson', 'lessons', 'milestone', 'milestones', 'curriculum',
-      'exercise', 'exercises', 'webinar', 'webinars', 'catalog',
+      'exercise', 'exercises', 'catalog',
       // Spanish
       'actividad', 'actividades', 'artículo', 'lección', 'lecciones',
       'hito', 'ejercicio', 'ejercicios', 'catálogo', 'etapa', 'etapas',
