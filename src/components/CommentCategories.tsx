@@ -15,7 +15,17 @@ interface CategoryDef {
   color: string;
   bgColor: string;
   borderColor: string;
-  keywords: string[];
+  patterns: RegExp[];
+}
+
+function words(...keywords: string[]): RegExp[] {
+  return keywords.map((kw) => {
+    // Multi-word phrases use plain includes-style match
+    if (kw.includes(' ')) return new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    // Single words use word-boundary matching to avoid substring false positives
+    const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`(?:^|[\\s.,;:!?¿¡"'()/])${escaped}(?:$|[\\s.,;:!?¿¡"'()/])`, 'i');
+  });
 }
 
 const CATEGORIES: CategoryDef[] = [
@@ -26,16 +36,17 @@ const CATEGORIES: CategoryDef[] = [
     color: 'text-red-700',
     bgColor: 'bg-red-50',
     borderColor: 'border-red-200',
-    keywords: [
-      'bug', 'error', 'crash', 'broken', 'doesnt work', "doesn't work", 'not working',
-      'fail', 'failed', 'failing', 'glitch', 'freeze', 'freezes', 'stuck', 'slow',
-      'loading', 'lag', 'laggy',
+    patterns: words(
+      'bug', 'error', 'crash', 'broken', 'glitch', 'freeze', 'freezes', 'stuck',
+      'slow', 'loading', 'lag', 'laggy',
+      // Phrases
+      'doesnt work', "doesn't work", 'not working', 'failed',
       // Spanish
-      'falla', 'fallo', 'error', 'no funciona', 'no sirve', 'se traba', 'lento', 'lenta',
+      'falla', 'fallo', 'no funciona', 'no sirve', 'se traba', 'lento', 'lenta',
       'se cierra', 'se cae', 'no carga', 'no abre', 'tarda',
       // Portuguese
       'travando', 'travou', 'não funciona', 'não abre', 'erro',
-    ],
+    ),
   },
   {
     key: 'price',
@@ -44,15 +55,23 @@ const CATEGORIES: CategoryDef[] = [
     color: 'text-amber-700',
     bgColor: 'bg-amber-50',
     borderColor: 'border-amber-200',
-    keywords: [
-      'price', 'pricing', 'expensive', 'cost', 'cheap', 'money', 'pay', 'paid',
-      'subscription', 'free', 'premium', 'worth', 'afford', 'charge', 'billing', 'refund',
+    patterns: words(
+      'price', 'pricing', 'expensive', 'cheap', 'money', 'paid',
+      'subscription', 'worth', 'afford', 'charge', 'billing', 'refund',
+      'chargeable',
+      // Phrases
+      'pay for', 'have to pay', 'locked to pay', 'must pay',
       // Spanish
-      'precio', 'caro', 'cara', 'costoso', 'costosa', 'pagar', 'cobro', 'cobran',
-      'suscripci', 'gratis', 'gratuito', 'dinero', 'vale la pena', 'mensualidad',
+      'precio', 'caro', 'cara', 'costoso', 'costosa', 'pagar', 'pagarse',
+      'cobro', 'cobran', 'cobraron', 'gratis', 'gratuito', 'gratuita',
+      'dinero', 'mensualidad', 'abusiva',
+      // Phrases Spanish
+      'se debe de pagar', 'todo es pago', 'todo se tiene que pagar',
+      'requiere de pago', 'debe pagarse', 'es pago', 'vale la pena',
+      'contenido gratuito', 'plan comprado', 'no tenemos plan',
       // Portuguese
-      'preço', 'caro', 'cara', 'pagar', 'assinatura', 'gratuito', 'dinheiro',
-    ],
+      'preço', 'assinatura', 'dinheiro',
+    ),
   },
   {
     key: 'content',
@@ -61,15 +80,17 @@ const CATEGORIES: CategoryDef[] = [
     color: 'text-purple-700',
     bgColor: 'bg-purple-50',
     borderColor: 'border-purple-200',
-    keywords: [
-      'content', 'activity', 'activities', 'article', 'video', 'lesson', 'milestone',
-      'curriculum', 'exercise', 'game', 'catalog', 'age', 'ages',
+    patterns: words(
+      'activity', 'activities', 'article', 'articles', 'video', 'videos',
+      'lesson', 'lessons', 'milestone', 'milestones', 'curriculum',
+      'exercise', 'exercises', 'webinar', 'webinars', 'catalog',
       // Spanish
-      'contenido', 'actividad', 'actividades', 'artículo', 'video', 'lección',
-      'hito', 'ejercicio', 'juego', 'catálogo', 'edad', 'edades', 'etapa',
+      'actividad', 'actividades', 'artículo', 'lección', 'lecciones',
+      'hito', 'ejercicio', 'ejercicios', 'catálogo', 'etapa', 'etapas',
+      'estimulación',
       // Portuguese
-      'conteúdo', 'atividade', 'atividades', 'artigo', 'vídeo', 'lição',
-    ],
+      'atividade', 'atividades', 'artigo', 'lição',
+    ),
   },
   {
     key: 'feature',
@@ -78,17 +99,19 @@ const CATEGORIES: CategoryDef[] = [
     color: 'text-blue-700',
     bgColor: 'bg-blue-50',
     borderColor: 'border-blue-200',
-    keywords: [
-      'wish', 'would be nice', 'should have', 'could add', 'please add', 'missing',
-      'need', 'want', 'feature', 'option', 'improve', 'improvement', 'suggestion',
-      'suggest', 'hope',
+    patterns: words(
+      'feature', 'improvement', 'suggestion',
+      // Phrases
+      'would be nice', 'should have', 'could add', 'please add',
+      'i wish it', 'wish it had', 'wish there',
       // Spanish
-      'ojalá', 'estaría bien', 'falta', 'faltan', 'necesita', 'necesito',
-      'quisiera', 'quiero', 'mejorar', 'mejora', 'sugerencia', 'sugiero', 'agregar',
-      'añadir', 'incluir',
+      'ojalá', 'quisiera', 'sugerencia', 'sugiero', 'agregar',
+      'añadir',
+      // Phrases Spanish
+      'estaría bien', 'debería tener', 'le falta', 'les falta',
       // Portuguese
-      'gostaria', 'poderia', 'falta', 'precisa', 'melhorar', 'melhoria', 'sugestão',
-    ],
+      'gostaria', 'sugestão',
+    ),
   },
   {
     key: 'ux',
@@ -97,16 +120,16 @@ const CATEGORIES: CategoryDef[] = [
     color: 'text-indigo-700',
     bgColor: 'bg-indigo-50',
     borderColor: 'border-indigo-200',
-    keywords: [
-      'confusing', 'hard to', 'difficult', 'navigate', 'navigation', 'intuitive',
-      'design', 'layout', 'interface', 'ui', 'ux', 'button', 'menu', 'find',
-      'complicated', 'simple', 'easy', 'easier',
+    patterns: words(
+      'confusing', 'difficult', 'intuitive', 'layout', 'complicated',
+      // Phrases
+      'hard to use', 'hard to find', 'hard to navigate', 'user interface',
       // Spanish
-      'confuso', 'confusa', 'difícil', 'navegar', 'navegación', 'diseño', 'interfaz',
-      'botón', 'menú', 'encontrar', 'complicado', 'complicada', 'sencillo', 'fácil',
+      'confuso', 'confusa', 'difícil de usar', 'navegar', 'navegación',
+      'diseño', 'interfaz', 'complicado', 'complicada',
       // Portuguese
-      'confuso', 'difícil', 'navegar', 'navegação', 'design', 'interface', 'botão',
-    ],
+      'navegação',
+    ),
   },
   {
     key: 'praise',
@@ -115,26 +138,28 @@ const CATEGORIES: CategoryDef[] = [
     color: 'text-emerald-700',
     bgColor: 'bg-emerald-50',
     borderColor: 'border-emerald-200',
-    keywords: [
-      'love', 'amazing', 'great', 'awesome', 'excellent', 'best', 'wonderful',
-      'fantastic', 'helpful', 'thank', 'thanks', 'perfect', 'good app', 'recommend',
-      'happy', 'enjoy',
+    patterns: words(
+      'love', 'amazing', 'awesome', 'excellent', 'wonderful',
+      'fantastic', 'helpful', 'perfect', 'recommend', 'enjoy',
+      // Phrases
+      'good app', 'great app', 'best app',
       // Spanish
       'encanta', 'excelente', 'increíble', 'genial', 'maravilloso', 'maravillosa',
-      'mejor', 'fantástico', 'fantástica', 'gracias', 'perfecto', 'perfecta',
-      'buena app', 'recomiendo', 'feliz', 'me gusta', 'amo',
+      'fantástico', 'fantástica', 'perfecto', 'perfecta',
+      'recomiendo', 'me gusta mucho',
+      // Phrases Spanish
+      'buena app', 'buena aplicación', 'muy buena', 'facilita mucho',
       // Portuguese
-      'amo', 'adoro', 'excelente', 'incrível', 'maravilhoso', 'obrigado', 'obrigada',
-      'perfeito', 'perfeita', 'recomendo',
-    ],
+      'adoro', 'incrível', 'maravilhoso', 'recomendo',
+      'perfeito', 'perfeita',
+    ),
   },
 ];
 
 function categorizeComment(comment: string): string[] {
   if (!comment || !comment.trim()) return [];
-  const lower = comment.toLowerCase();
   const matched = CATEGORIES
-    .filter((cat) => cat.keywords.some((kw) => lower.includes(kw)))
+    .filter((cat) => cat.patterns.some((re) => re.test(comment)))
     .map((cat) => cat.key);
   return matched.length > 0 ? matched : ['other'];
 }
