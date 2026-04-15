@@ -15,6 +15,7 @@ import NpsOverTimeChart from './NpsOverTimeChart';
 import CategoryDonutChart from './CategoryDonutChart';
 import ScoresByPlanChart from './ScoresByPlanChart';
 import ResponseTable from './ResponseTable';
+import CommentCategories from './CommentCategories';
 
 export default function Dashboard() {
   const { responses, filters, setFilters, loading, error, lastUpdated, refresh } =
@@ -139,6 +140,9 @@ export default function Dashboard() {
 
         {/* Responses Table */}
         <ResponseTable responses={filtered} />
+
+        {/* Comment Topics */}
+        <CommentCategories responses={filtered} />
       </main>
     </div>
   );
