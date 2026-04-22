@@ -36,6 +36,7 @@ export default function CommentTrackingTab({
   const [errorRow, setErrorRow] = useState<string | null>(null);
   const [assigneeFilter, setAssigneeFilter] = useState<TrackingAssigneeFilter>('');
   const [statusFilter, setStatusFilter] = useState<TrackingStatusFilter>('all');
+  const [onlyWithComments, setOnlyWithComments] = useState(false);
   const [localTags, setLocalTags] = useState<string[]>([]);
 
   // Fire-and-forget persist for a custom tag. Shows up in everyone's
@@ -121,21 +122,24 @@ export default function CommentTrackingTab({
       }
       if (statusFilter === 'pending' && v.followedUp) return false;
       if (statusFilter === 'followed' && !v.followedUp) return false;
+      if (onlyWithComments && !(r.comment && r.comment.trim())) return false;
       return true;
     });
     // displayValue closes over overrides → include them in the dep list
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtered, overrides, assigneeFilter, statusFilter]);
+  }, [filtered, overrides, assigneeFilter, statusFilter, onlyWithComments]);
 
   const counts = useMemo(() => {
     let assigned = 0;
     let followed = 0;
+    let withComments = 0;
     rows.forEach((r) => {
       const v = displayValue(r);
       if (v.assigned) assigned++;
       if (v.followedUp) followed++;
+      if (r.comment && r.comment.trim()) withComments++;
     });
-    return { total: rows.length, assigned, followed };
+    return { total: rows.length, assigned, followed, withComments };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rows, overrides]);
 
@@ -193,6 +197,8 @@ export default function CommentTrackingTab({
         categories={categories}
         osValues={osValues}
         appVersions={appVersions}
+        onlyWithComments={onlyWithComments}
+        setOnlyWithComments={setOnlyWithComments}
         counts={counts}
       />
 
@@ -248,11 +254,11 @@ export default function CommentTrackingTab({
                     <Td className="text-xs text-gray-600">{r.os || '—'}</Td>
                     <Td className="text-xs text-gray-600">{r.appVersion || '—'}</Td>
                     <Td className="text-xs text-gray-600 capitalize">{r.highestPlanType || '—'}</Td>
-                    <Td className="text-xs text-gray-700 max-w-xs">
+                    <Td className="text-xs text-gray-700 min-w-[220px] max-w-[380px]">
                       {r.comment ? (
-                        <span className="block truncate" title={r.comment}>
+                        <p className="whitespace-pre-wrap break-words leading-relaxed">
                           {r.comment}
-                        </span>
+                        </p>
                       ) : (
                         <span className="text-gray-400">—</span>
                       )}

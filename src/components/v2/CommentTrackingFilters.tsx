@@ -21,7 +21,9 @@ interface CommentTrackingFiltersProps {
   categories: string[];
   osValues: string[];
   appVersions: string[];
-  counts: { total: number; assigned: number; followed: number };
+  onlyWithComments: boolean;
+  setOnlyWithComments: (v: boolean) => void;
+  counts: { total: number; assigned: number; followed: number; withComments: number };
 }
 
 type Pill = { key: TimeRangePreset | 'all' | 'custom' | '14d'; label: string; days?: number };
@@ -55,6 +57,8 @@ export default function CommentTrackingFilters({
   categories,
   osValues,
   appVersions,
+  onlyWithComments,
+  setOnlyWithComments,
   counts,
 }: CommentTrackingFiltersProps) {
   // Determine the active pill from current filters
@@ -96,6 +100,11 @@ export default function CommentTrackingFilters({
           <span>
             <span className="font-semibold text-gray-700">{counts.total.toLocaleString()}</span> response
             {counts.total === 1 ? '' : 's'}
+          </span>
+          <span className="text-gray-300">·</span>
+          <span>
+            <span className="font-semibold text-gray-700">{counts.withComments.toLocaleString()}</span> with
+            comment
           </span>
           <span className="text-gray-300">·</span>
           <span>
@@ -155,6 +164,23 @@ export default function CommentTrackingFilters({
           <option value="pending">Pending</option>
           <option value="followed">Followed up</option>
         </select>
+
+        {/* Only-with-comments toggle */}
+        <button
+          type="button"
+          onClick={() => setOnlyWithComments(!onlyWithComments)}
+          className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border transition-colors ${
+            onlyWithComments
+              ? 'bg-[#2a8fc7] text-white border-[#2a8fc7]'
+              : 'bg-white text-gray-700 border-gray-200 hover:border-[#2a8fc7]'
+          }`}
+          aria-pressed={onlyWithComments}
+        >
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+          With comment only
+        </button>
 
         {/* Category */}
         <select
