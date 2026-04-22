@@ -8,7 +8,7 @@ import CommentTrackingTab from './CommentTrackingTab';
 import TabsNav, { TabKey } from './TabsNav';
 
 export default function DashboardV2() {
-  const { responses, filters, setFilters, loading, error, lastUpdated, refresh } = useNpsData();
+  const { responses, tags, filters, setFilters, loading, error, lastUpdated, refresh } = useNpsData();
   const [tab, setTab] = useState<TabKey>('overview');
 
   const filtered = useMemo(() => filterResponses(responses, filters), [responses, filters]);
@@ -95,6 +95,7 @@ export default function DashboardV2() {
         {tab === 'comments' && (
           <CommentTrackingTab
             responses={responses}
+            tags={tags}
             filtered={filtered}
             filters={filters}
             setFilters={setFilters}

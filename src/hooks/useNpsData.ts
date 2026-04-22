@@ -7,6 +7,7 @@ const POLL_INTERVAL = 30000; // 30 seconds
 
 interface UseNpsDataReturn {
   responses: NpsResponse[];
+  tags: string[];
   filters: NpsFilters;
   setFilters: React.Dispatch<React.SetStateAction<NpsFilters>>;
   loading: boolean;
@@ -28,6 +29,7 @@ const defaultFilters: NpsFilters = {
 
 export function useNpsData(): UseNpsDataReturn {
   const [responses, setResponses] = useState<NpsResponse[]>([]);
+  const [tags, setTags] = useState<string[]>([]);
   const [filters, setFilters] = useState<NpsFilters>(defaultFilters);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,6 +46,7 @@ export function useNpsData(): UseNpsDataReturn {
       }
       const json = await res.json();
       setResponses(json.data || []);
+      setTags(Array.isArray(json.tags) ? json.tags : []);
       setLastUpdated(json.fetchedAt);
       setError(null);
     } catch (err) {
@@ -63,6 +66,7 @@ export function useNpsData(): UseNpsDataReturn {
 
   return {
     responses,
+    tags,
     filters,
     setFilters,
     loading,

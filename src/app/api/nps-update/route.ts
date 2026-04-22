@@ -20,22 +20,35 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const dedupKey = (body.dedupKey ?? '') as string;
-  if (!dedupKey) {
-    return NextResponse.json({ error: 'dedupKey is required' }, { status: 400 });
-  }
+  const action = ((body.action ?? 'update') as string) || 'update';
 
-  const payload = {
-    action: 'update',
-    dedupKey,
-    // Only forward the fields actually present so we don't overwrite with undefined
-    ...(Object.prototype.hasOwnProperty.call(body, 'assigned')
-      ? { assigned: body.assigned }
-      : {}),
-    ...(Object.prototype.hasOwnProperty.call(body, 'followedUp')
-      ? { followedUp: body.followedUp }
-      : {}),
-  };
+  let payload: Record<string, unknown>;
+
+  if (action === 'addTag') {
+    const name = ((body.name ?? '') as string).trim();
+    if (!name) {
+      return NextResponse.json({ error: 'name is required' }, { status: 400 });
+    }
+    payload = { action: 'addTag', name };
+  } else if (action === 'update') {
+    const dedupKey = ((body.dedupKey ?? '') as string);
+    if (!dedupKey) {
+      return NextResponse.json({ error: 'dedupKey is required' }, { status: 400 });
+    }
+    payload = {
+      action: 'update',
+      dedupKey,
+      // Only forward the fields actually present so we don't overwrite with undefined
+      ...(Object.prototype.hasOwnProperty.call(body, 'assigned')
+        ? { assigned: body.assigned }
+        : {}),
+      ...(Object.prototype.hasOwnProperty.call(body, 'followedUp')
+        ? { followedUp: body.followedUp }
+        : {}),
+    };
+  } else {
+    return NextResponse.json({ error: `Unknown action: ${action}` }, { status: 400 });
+  }
 
   try {
     const res = await fetch(WEBHOOK_URL, {

@@ -7,10 +7,17 @@ interface AssigneeComboboxProps {
   value: string;
   options: string[];
   onChange: (v: string) => void;
+  onAddNew?: (v: string) => void;
   disabled?: boolean;
 }
 
-export default function AssigneeCombobox({ value, options, onChange, disabled }: AssigneeComboboxProps) {
+export default function AssigneeCombobox({
+  value,
+  options,
+  onChange,
+  onAddNew,
+  disabled,
+}: AssigneeComboboxProps) {
   const [open, setOpen] = useState(false);
   const [typed, setTyped] = useState('');
   const ref = useRef<HTMLDivElement>(null);
@@ -31,6 +38,8 @@ export default function AssigneeCombobox({ value, options, onChange, disabled }:
     typed.trim() && !options.some((o) => o.toLowerCase() === typed.trim().toLowerCase());
 
   const commit = (name: string) => {
+    const isNew = !options.some((o) => o.toLowerCase() === name.toLowerCase());
+    if (isNew && onAddNew) onAddNew(name);
     onChange(name);
     setTyped('');
     setOpen(false);

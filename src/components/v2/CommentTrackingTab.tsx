@@ -12,6 +12,7 @@ import { format, parseISO } from 'date-fns';
 
 interface CommentTrackingTabProps {
   responses: NpsResponse[];
+  tags: string[];
   filtered: NpsResponse[];
   filters: NpsFilters;
   setFilters: React.Dispatch<React.SetStateAction<NpsFilters>>;
@@ -22,6 +23,7 @@ const DEFAULT_NAMES = ['Martha', 'Mariana', 'Nath', 'Marijo', 'Paola'];
 
 export default function CommentTrackingTab({
   responses,
+  tags,
   filtered,
   filters,
   setFilters,
@@ -34,6 +36,26 @@ export default function CommentTrackingTab({
   const [errorRow, setErrorRow] = useState<string | null>(null);
   const [assigneeFilter, setAssigneeFilter] = useState<TrackingAssigneeFilter>('');
   const [statusFilter, setStatusFilter] = useState<TrackingStatusFilter>('all');
+  const [localTags, setLocalTags] = useState<string[]>([]);
+
+  // Fire-and-forget persist for a custom tag. Shows up in everyone's
+  // dropdown after next /api/nps-data refresh; meanwhile localTags keeps
+  // it in THIS user's dropdown instantly.
+  const persistTag = async (name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    setLocalTags((prev) => (prev.includes(trimmed) ? prev : [...prev, trimmed]));
+    try {
+      await fetch('/api/nps-update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'addTag', name: trimmed }),
+      });
+      onMutate(); // pull fresh data incl. updated Tags sheet
+    } catch (err) {
+      console.error('Failed to persist tag:', err);
+    }
+  };
 
   const displayValue = (r: NpsResponse) => {
     const o = overrides[r.dedupKey];
@@ -64,12 +86,24 @@ export default function CommentTrackingTab({
     });
   }, [responses]);
 
+  // Union of: defaults, persisted Tags sheet entries, anything currently
+  // assigned in the data, and just-added tags held locally while the Tags
+  // sheet fetch catches up.
   const availableNames = useMemo(() => {
     const fromData = responses.map((r) => r.assigned).filter(Boolean);
-    return Array.from(new Set([...DEFAULT_NAMES, ...fromData])).sort((a, b) =>
+    return Array.from(new Set([...DEFAULT_NAMES, ...tags, ...localTags, ...fromData])).sort((a, b) =>
       a.localeCompare(b)
     );
-  }, [responses]);
+  }, [responses, tags, localTags]);
+
+  // Once a local tag shows up in the fetched tags, drop it from localTags to
+  // avoid duplicate sources of truth.
+  useEffect(() => {
+    if (localTags.length === 0) return;
+    const serverSet = new Set(tags.map((t) => t.toLowerCase()));
+    const remaining = localTags.filter((t) => !serverSet.has(t.toLowerCase()));
+    if (remaining.length !== localTags.length) setLocalTags(remaining);
+  }, [tags, localTags]);
 
   const { planTypes, locales, categories, osValues, appVersions } = useMemo(
     () => getUniqueValues(responses),
@@ -229,6 +263,7 @@ export default function CommentTrackingTab({
                         options={availableNames}
                         disabled={isSaving}
                         onChange={(name) => updateRow(r.dedupKey, { assigned: name })}
+                        onAddNew={(name) => persistTag(name)}
                       />
                     </Td>
                     <Td>

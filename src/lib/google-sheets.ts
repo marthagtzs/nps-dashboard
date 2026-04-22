@@ -67,3 +67,24 @@ function parseBool(v: string | undefined): boolean {
   const s = String(v).trim().toLowerCase();
   return s === 'true' || s === '1' || s === 'yes' || s === 'x';
 }
+
+export async function fetchTags(): Promise<string[]> {
+  if (!SHEET_ID || !API_KEY) return [];
+  const range = encodeURIComponent('Tags!A2:A');
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}?key=${API_KEY}`;
+  try {
+    const res = await fetch(url, { next: { revalidate: 30 } });
+    if (!res.ok) {
+      // If the Tags sheet doesn't exist yet, the API returns 400.
+      // Swallow and return empty so the dashboard still loads.
+      return [];
+    }
+    const data = await res.json();
+    const rows: string[][] = data.values || [];
+    return rows
+      .map((r) => (r[0] || '').trim())
+      .filter(Boolean);
+  } catch {
+    return [];
+  }
+}
