@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { colorForAssignee } from './assigneeColors';
 
 interface AssigneeComboboxProps {
   value: string;
@@ -41,24 +42,26 @@ export default function AssigneeCombobox({ value, options, onChange, disabled }:
     setOpen(false);
   };
 
+  const currentColor = colorForAssignee(value);
+
   return (
     <div ref={ref} className="relative w-36">
       <button
         onClick={() => !disabled && setOpen((v) => !v)}
         disabled={disabled}
-        className={`w-full flex items-center justify-between px-2.5 py-1.5 text-xs rounded-md border transition-colors ${
+        className={`w-full flex items-center justify-between px-2.5 py-1.5 text-xs font-medium rounded-md border transition-colors ${
           value
-            ? 'bg-[#2a8fc7] text-white border-[#2a8fc7] hover:bg-[#2384b8]'
+            ? `${currentColor.bg} ${currentColor.text} border-transparent`
             : 'bg-white text-gray-500 border-gray-300 hover:border-[#2a8fc7]'
         } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
       >
         <span className="truncate">{value || 'Unassigned'}</span>
-        <svg className="w-3 h-3 ml-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-3 h-3 ml-1 flex-shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
       {open && (
-        <div className="absolute left-0 top-full mt-1 w-48 bg-white rounded-lg border border-gray-200 shadow-lg z-20 overflow-hidden">
+        <div className="absolute left-0 top-full mt-1 w-52 bg-white rounded-lg border border-gray-200 shadow-lg z-20 overflow-hidden">
           <div className="p-2 border-b border-gray-100">
             <input
               autoFocus
@@ -88,22 +91,29 @@ export default function AssigneeCombobox({ value, options, onChange, disabled }:
                 Clear assignment
               </button>
             )}
-            {filtered.map((o) => (
-              <button
-                key={o}
-                onClick={() => commit(o)}
-                className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 flex items-center justify-between ${
-                  o === value ? 'bg-blue-50 text-[#2a8fc7] font-medium' : 'text-gray-700'
-                }`}
-              >
-                {o}
-                {o === value && (
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                )}
-              </button>
-            ))}
+            {filtered.map((o) => {
+              const c = colorForAssignee(o);
+              const isSelected = o === value;
+              return (
+                <button
+                  key={o}
+                  onClick={() => commit(o)}
+                  className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 flex items-center justify-between gap-2 ${
+                    isSelected ? 'bg-gray-50' : ''
+                  }`}
+                >
+                  <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium ${c.softBg} ${c.softText}`}>
+                    <span className={`inline-block w-1.5 h-1.5 rounded-full ${c.bg}`} />
+                    {o}
+                  </span>
+                  {isSelected && (
+                    <svg className="w-3 h-3 text-[#2a8fc7] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </button>
+              );
+            })}
             {showAddNew && (
               <button
                 onClick={() => commit(typed.trim())}

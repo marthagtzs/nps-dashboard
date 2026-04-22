@@ -2,8 +2,11 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { NpsFilters, NpsResponse } from '@/lib/types';
-import { getUniqueValues } from '@/lib/nps-calculations';
 import AssigneeCombobox from './AssigneeCombobox';
+import CommentTrackingFilters, {
+  TrackingAssigneeFilter,
+  TrackingStatusFilter,
+} from './CommentTrackingFilters';
 import { format, parseISO } from 'date-fns';
 
 interface CommentTrackingTabProps {
@@ -16,22 +19,21 @@ interface CommentTrackingTabProps {
 
 const DEFAULT_NAMES = ['Martha', 'Mariana', 'Nath', 'Marijo', 'Paola'];
 
-export default function CommentTrackingTab({ responses, filtered, onMutate }: CommentTrackingTabProps) {
-  // Optimistic overlay: edits the user just made, keyed by dedupKey
+export default function CommentTrackingTab({
+  responses,
+  filtered,
+  filters,
+  setFilters,
+  onMutate,
+}: CommentTrackingTabProps) {
+  // Optimistic overlay so edits appear instantly and survive polling until
+  // the sheet reflects them.
   const [overrides, setOverrides] = useState<Record<string, { assigned?: string; followedUp?: boolean }>>({});
   const [saving, setSaving] = useState<Record<string, boolean>>({});
   const [errorRow, setErrorRow] = useState<string | null>(null);
+  const [assigneeFilter, setAssigneeFilter] = useState<TrackingAssigneeFilter>('');
+  const [statusFilter, setStatusFilter] = useState<TrackingStatusFilter>('all');
 
-  const { planTypes, locales, categories, osValues, appVersions } = useMemo(
-    () => getUniqueValues(responses),
-    [responses]
-  );
-
-  // Only rows with a comment are meaningful for tracking; but tracking applies to every response
-  // We keep all rows here (user asked for all comments with ids/language/os/attrs)
-  const rows = filtered;
-
-  // Merge server value with any pending override
   const displayValue = (r: NpsResponse) => {
     const o = overrides[r.dedupKey];
     return {
@@ -40,7 +42,8 @@ export default function CommentTrackingTab({ responses, filtered, onMutate }: Co
     };
   };
 
-  // Once the server reflects the edit, clear the override so polling doesn't flicker stale values
+  // Clear an override once the server value catches up — prevents stale flicker
+  // when polling returns the saved state.
   useEffect(() => {
     setOverrides((prev) => {
       const next = { ...prev };
@@ -60,16 +63,43 @@ export default function CommentTrackingTab({ responses, filtered, onMutate }: Co
     });
   }, [responses]);
 
-  // Available names: defaults + any already assigned in the sheet
   const availableNames = useMemo(() => {
     const fromData = responses.map((r) => r.assigned).filter(Boolean);
-    return Array.from(new Set([...DEFAULT_NAMES, ...fromData]));
+    return Array.from(new Set([...DEFAULT_NAMES, ...fromData])).sort((a, b) =>
+      a.localeCompare(b)
+    );
   }, [responses]);
 
-  async function updateRow(
-    dedupKey: string,
-    patch: { assigned?: string; followedUp?: boolean }
-  ) {
+  // Apply tab-local filters on top of the global (date-range) filters
+  const rows = useMemo(() => {
+    return filtered.filter((r) => {
+      const v = displayValue(r);
+      if (assigneeFilter === '__UNASSIGNED__') {
+        if (v.assigned) return false;
+      } else if (assigneeFilter && assigneeFilter !== '') {
+        if (v.assigned !== assigneeFilter) return false;
+      }
+      if (statusFilter === 'pending' && v.followedUp) return false;
+      if (statusFilter === 'followed' && !v.followedUp) return false;
+      return true;
+    });
+    // displayValue closes over overrides → include them in the dep list
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtered, overrides, assigneeFilter, statusFilter]);
+
+  const counts = useMemo(() => {
+    let assigned = 0;
+    let followed = 0;
+    rows.forEach((r) => {
+      const v = displayValue(r);
+      if (v.assigned) assigned++;
+      if (v.followedUp) followed++;
+    });
+    return { total: rows.length, assigned, followed };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows, overrides]);
+
+  async function updateRow(dedupKey: string, patch: { assigned?: string; followedUp?: boolean }) {
     setSaving((s) => ({ ...s, [dedupKey]: true }));
     setErrorRow(null);
     setOverrides((prev) => ({ ...prev, [dedupKey]: { ...prev[dedupKey], ...patch } }));
@@ -82,7 +112,7 @@ export default function CommentTrackingTab({ responses, filtered, onMutate }: Co
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       if (json.status === 'error') throw new Error(json.message || 'Update failed');
-      onMutate(); // pull fresh data
+      onMutate();
     } catch (err) {
       setErrorRow(dedupKey);
       setOverrides((prev) => {
@@ -110,18 +140,16 @@ export default function CommentTrackingTab({ responses, filtered, onMutate }: Co
 
   return (
     <div className="space-y-4">
-      <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h3 className="text-sm font-semibold text-gray-800">Comment tracking</h3>
-            <p className="text-xs text-gray-500 mt-0.5">
-              {rows.length.toLocaleString()} response{rows.length === 1 ? '' : 's'} (filters from Overview apply).
-              Tag an assignee and check off responses you&rsquo;ve followed up on &mdash; saved to the sheet, visible to everyone.
-            </p>
-          </div>
-        </div>
-        <QuickCounts rows={rows} overrides={overrides} />
-      </div>
+      <CommentTrackingFilters
+        filters={filters}
+        setFilters={setFilters}
+        assigneeFilter={assigneeFilter}
+        setAssigneeFilter={setAssigneeFilter}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        assigneeOptions={availableNames}
+        counts={counts}
+      />
 
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
@@ -157,13 +185,15 @@ export default function CommentTrackingTab({ responses, filtered, onMutate }: Co
                   <tr key={r.dedupKey} className="border-b border-gray-100 hover:bg-gray-50 align-top">
                     <Td className="whitespace-nowrap text-gray-600 text-xs">{fmtDate(r.date)}</Td>
                     <Td>
-                      <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${
-                        r.score >= 9
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : r.score >= 7
-                          ? 'bg-amber-100 text-amber-700'
-                          : 'bg-red-100 text-red-700'
-                      }`}>
+                      <span
+                        className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${
+                          r.score >= 9
+                            ? 'bg-emerald-100 text-emerald-700'
+                            : r.score >= 7
+                            ? 'bg-amber-100 text-amber-700'
+                            : 'bg-red-100 text-red-700'
+                        }`}
+                      >
                         {r.score}
                       </span>
                     </Td>
@@ -175,7 +205,9 @@ export default function CommentTrackingTab({ responses, filtered, onMutate }: Co
                     <Td className="text-xs text-gray-600 capitalize">{r.highestPlanType || '—'}</Td>
                     <Td className="text-xs text-gray-700 max-w-xs">
                       {r.comment ? (
-                        <span className="block truncate" title={r.comment}>{r.comment}</span>
+                        <span className="block truncate" title={r.comment}>
+                          {r.comment}
+                        </span>
                       ) : (
                         <span className="text-gray-400">—</span>
                       )}
@@ -189,7 +221,11 @@ export default function CommentTrackingTab({ responses, filtered, onMutate }: Co
                       />
                     </Td>
                     <Td>
-                      <label className={`inline-flex items-center gap-2 cursor-pointer ${isSaving ? 'opacity-50' : ''}`}>
+                      <label
+                        className={`inline-flex items-center gap-2 cursor-pointer ${
+                          isSaving ? 'opacity-50' : ''
+                        }`}
+                      >
                         <input
                           type="checkbox"
                           checked={!!v.followedUp}
@@ -207,9 +243,6 @@ export default function CommentTrackingTab({ responses, filtered, onMutate }: Co
           </table>
         </div>
       </div>
-
-      {/* Silence unused-args warning in production build */}
-      <div className="hidden">{[planTypes, locales, categories, osValues, appVersions].length}</div>
     </div>
   );
 }
@@ -220,47 +253,6 @@ function Th({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Td({
-  children,
-  className = '',
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
+function Td({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return <td className={`px-3 py-2.5 ${className}`}>{children}</td>;
-}
-
-function QuickCounts({
-  rows,
-  overrides,
-}: {
-  rows: NpsResponse[];
-  overrides: Record<string, { assigned?: string; followedUp?: boolean }>;
-}) {
-  const { assignedCount, followedUpCount } = useMemo(() => {
-    let a = 0;
-    let f = 0;
-    rows.forEach((r) => {
-      const o = overrides[r.dedupKey];
-      const assigned = o?.assigned !== undefined ? o.assigned : r.assigned;
-      const followedUp = o?.followedUp !== undefined ? o.followedUp : r.followedUp;
-      if (assigned) a++;
-      if (followedUp) f++;
-    });
-    return { assignedCount: a, followedUpCount: f };
-  }, [rows, overrides]);
-
-  return (
-    <div className="flex items-center gap-4 text-xs text-gray-500">
-      <div>
-        <span className="font-semibold text-gray-700">{assignedCount}</span> assigned
-      </div>
-      <div>
-        <span className="font-semibold text-gray-700">{followedUpCount}</span> followed up
-      </div>
-      <div>
-        <span className="font-semibold text-gray-700">{rows.length - followedUpCount}</span> pending
-      </div>
-    </div>
-  );
 }
