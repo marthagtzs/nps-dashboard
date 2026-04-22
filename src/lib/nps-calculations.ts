@@ -132,6 +132,55 @@ export function groupByPlanType(responses: NpsResponse[]): PlanTypeStats[] {
     .sort((a, b) => b.total - a.total);
 }
 
+export interface GroupNps {
+  key: string;
+  label: string;
+  npsScore: number;
+  total: number;
+}
+
+export function groupByField(
+  responses: NpsResponse[],
+  field: 'highestPlanType' | 'userLocale' | 'os',
+  formatLabel: (raw: string) => string = (s) => s
+): GroupNps[] {
+  const groups: Record<string, NpsResponse[]> = {};
+  responses.forEach((r) => {
+    const k = (r[field] || 'unknown') as string;
+    if (!groups[k]) groups[k] = [];
+    groups[k].push(r);
+  });
+  return Object.entries(groups)
+    .map(([key, items]) => {
+      const stats = calculateStats(items);
+      return {
+        key,
+        label: formatLabel(key),
+        npsScore: stats.npsScore,
+        total: stats.total,
+      };
+    })
+    .sort((a, b) => b.total - a.total);
+}
+
+export interface ScoreBucket {
+  score: number;
+  count: number;
+  category: 'Detractor' | 'Passive' | 'Promoter';
+}
+
+export function getScoreDistribution(responses: NpsResponse[]): ScoreBucket[] {
+  const counts: number[] = new Array(11).fill(0);
+  responses.forEach((r) => {
+    if (r.score >= 0 && r.score <= 10) counts[r.score]++;
+  });
+  return counts.map((count, score) => ({
+    score,
+    count,
+    category: score >= 9 ? 'Promoter' : score >= 7 ? 'Passive' : 'Detractor',
+  }));
+}
+
 export function getUniqueValues(responses: NpsResponse[]) {
   const planTypes = [...new Set(responses.map((r) => r.highestPlanType).filter(Boolean))].sort();
   const locales = [...new Set(responses.map((r) => r.userLocale).filter(Boolean))].sort();

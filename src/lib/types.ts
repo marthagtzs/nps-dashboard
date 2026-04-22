@@ -9,6 +9,8 @@ export interface NpsResponse {
   userLocale: string;
   os: string;
   appVersion: string;
+  assigned: string;
+  followedUp: boolean;
 }
 
 export type TimeRangePreset = 'today' | '7d' | '30d' | '90d' | 'thisMonth' | 'lastMonth' | '';
