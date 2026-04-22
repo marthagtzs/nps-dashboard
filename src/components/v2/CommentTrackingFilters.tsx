@@ -16,6 +16,11 @@ interface CommentTrackingFiltersProps {
   statusFilter: TrackingStatusFilter;
   setStatusFilter: (v: TrackingStatusFilter) => void;
   assigneeOptions: string[];
+  planTypes: string[];
+  locales: string[];
+  categories: string[];
+  osValues: string[];
+  appVersions: string[];
   counts: { total: number; assigned: number; followed: number };
 }
 
@@ -45,6 +50,11 @@ export default function CommentTrackingFilters({
   statusFilter,
   setStatusFilter,
   assigneeOptions,
+  planTypes,
+  locales,
+  categories,
+  osValues,
+  appVersions,
   counts,
 }: CommentTrackingFiltersProps) {
   // Determine the active pill from current filters
@@ -144,6 +154,76 @@ export default function CommentTrackingFilters({
           <option value="all">All status</option>
           <option value="pending">Pending</option>
           <option value="followed">Followed up</option>
+        </select>
+
+        {/* Category */}
+        <select
+          value={filters.category}
+          onChange={(e) => setFilters((f) => ({ ...f, category: e.target.value }))}
+          className="px-3 py-2 text-xs font-medium bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2a8fc7] focus:border-transparent"
+        >
+          <option value="">All categories</option>
+          {categories.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+
+        {/* Plan */}
+        <select
+          value={filters.planType}
+          onChange={(e) => setFilters((f) => ({ ...f, planType: e.target.value }))}
+          className="px-3 py-2 text-xs font-medium bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2a8fc7] focus:border-transparent"
+        >
+          <option value="">All plans</option>
+          {planTypes.map((p) => (
+            <option key={p} value={p}>
+              {p.charAt(0).toUpperCase() + p.slice(1)}
+            </option>
+          ))}
+        </select>
+
+        {/* Locale */}
+        <select
+          value={filters.locale}
+          onChange={(e) => setFilters((f) => ({ ...f, locale: e.target.value }))}
+          className="px-3 py-2 text-xs font-medium bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2a8fc7] focus:border-transparent"
+        >
+          <option value="">All locales</option>
+          {locales.map((l) => (
+            <option key={l} value={l}>
+              {l.toUpperCase()}
+            </option>
+          ))}
+        </select>
+
+        {/* OS */}
+        <select
+          value={filters.os}
+          onChange={(e) => setFilters((f) => ({ ...f, os: e.target.value }))}
+          className="px-3 py-2 text-xs font-medium bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2a8fc7] focus:border-transparent"
+        >
+          <option value="">All OS</option>
+          {osValues.map((o) => (
+            <option key={o} value={o}>
+              {o}
+            </option>
+          ))}
+        </select>
+
+        {/* App version */}
+        <select
+          value={filters.appVersion}
+          onChange={(e) => setFilters((f) => ({ ...f, appVersion: e.target.value }))}
+          className="px-3 py-2 text-xs font-medium bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2a8fc7] focus:border-transparent"
+        >
+          <option value="">All versions</option>
+          {appVersions.map((v) => (
+            <option key={v} value={v}>
+              {v}
+            </option>
+          ))}
         </select>
       </div>
 

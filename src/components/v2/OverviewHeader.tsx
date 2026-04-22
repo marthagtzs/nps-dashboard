@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { NpsFilters, TimeRangePreset } from '@/lib/types';
 import { format, subDays } from 'date-fns';
 import FiltersPopover from './FiltersPopover';
@@ -17,14 +17,17 @@ interface OverviewHeaderProps {
   appVersions: string[];
 }
 
-const PILLS: { key: TimeRangePreset | 'all'; label: string }[] = [
+type PillKey = TimeRangePreset | 'all' | 'custom';
+
+const PILLS: { key: PillKey; label: string }[] = [
   { key: '7d', label: 'Last 7 days' },
   { key: '30d', label: 'Last 30 days' },
   { key: '90d', label: 'Last 90 days' },
+  { key: 'custom', label: 'Custom' },
   { key: 'all', label: 'All time' },
 ];
 
-function getPresetDates(preset: TimeRangePreset | 'all'): { dateFrom: string; dateTo: string } {
+function getPresetDates(preset: PillKey): { dateFrom: string; dateTo: string } {
   const today = new Date();
   const todayStr = format(today, 'yyyy-MM-dd');
   switch (preset) {
@@ -44,20 +47,40 @@ export default function OverviewHeader(props: OverviewHeaderProps) {
   const [open, setOpen] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
 
-  const selectPill = (key: TimeRangePreset | 'all') => {
+  // Determine selected pill from filters
+  const activePill: PillKey = (() => {
+    if (!filters.dateFrom && !filters.dateTo) return 'all';
+    if (filters.timeRange === '7d' || filters.timeRange === '30d' || filters.timeRange === '90d') {
+      return filters.timeRange;
+    }
+    // Date(s) set without a preset match → treat as custom
+    return 'custom';
+  })();
+
+  const [customOpen, setCustomOpen] = useState(activePill === 'custom');
+
+  // Keep customOpen in sync if the active pill changes (e.g. user picks a preset)
+  useEffect(() => {
+    if (activePill !== 'custom') setCustomOpen(false);
+  }, [activePill]);
+
+  const selectPill = (key: PillKey) => {
     if (key === 'all') {
       setFilters({ ...filters, dateFrom: '', dateTo: '', timeRange: '' });
+      setCustomOpen(false);
+    } else if (key === 'custom') {
+      setCustomOpen(true);
+      // Don't clear existing dates; let user tweak them directly.
+      // If the pill was previously a preset, wipe the preset flag so the date inputs are treated as custom.
+      if (filters.timeRange) {
+        setFilters({ ...filters, timeRange: '' });
+      }
     } else {
       const { dateFrom, dateTo } = getPresetDates(key);
       setFilters({ ...filters, dateFrom, dateTo, timeRange: key });
+      setCustomOpen(false);
     }
   };
-
-  // Determine selected pill from filters
-  const activePill: TimeRangePreset | 'all' = (() => {
-    if (!filters.dateFrom && !filters.dateTo) return 'all';
-    return (filters.timeRange as TimeRangePreset) || '';
-  })() as TimeRangePreset | 'all';
 
   const nonDateFilterCount = [
     filters.planType,
@@ -120,6 +143,37 @@ export default function OverviewHeader(props: OverviewHeaderProps) {
           )}
         </div>
       </div>
+
+      {customOpen && (
+        <div className="mt-3 flex items-end gap-3 flex-wrap bg-white border border-gray-200 rounded-lg px-3 py-2.5">
+          <div>
+            <label className="block text-[11px] text-gray-500 mb-1">From</label>
+            <input
+              type="date"
+              value={filters.dateFrom}
+              onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value, timeRange: '' })}
+              className="px-3 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2a8fc7] focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] text-gray-500 mb-1">To</label>
+            <input
+              type="date"
+              value={filters.dateTo}
+              onChange={(e) => setFilters({ ...filters, dateTo: e.target.value, timeRange: '' })}
+              className="px-3 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2a8fc7] focus:border-transparent"
+            />
+          </div>
+          {(filters.dateFrom || filters.dateTo) && (
+            <button
+              onClick={() => setFilters({ ...filters, dateFrom: '', dateTo: '', timeRange: '' })}
+              className="text-xs text-[#2a8fc7] hover:text-blue-700 font-medium self-end pb-1.5"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

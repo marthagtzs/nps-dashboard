@@ -7,6 +7,7 @@ import CommentTrackingFilters, {
   TrackingAssigneeFilter,
   TrackingStatusFilter,
 } from './CommentTrackingFilters';
+import { getUniqueValues } from '@/lib/nps-calculations';
 import { format, parseISO } from 'date-fns';
 
 interface CommentTrackingTabProps {
@@ -69,6 +70,11 @@ export default function CommentTrackingTab({
       a.localeCompare(b)
     );
   }, [responses]);
+
+  const { planTypes, locales, categories, osValues, appVersions } = useMemo(
+    () => getUniqueValues(responses),
+    [responses]
+  );
 
   // Apply tab-local filters on top of the global (date-range) filters
   const rows = useMemo(() => {
@@ -148,6 +154,11 @@ export default function CommentTrackingTab({
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
         assigneeOptions={availableNames}
+        planTypes={planTypes}
+        locales={locales}
+        categories={categories}
+        osValues={osValues}
+        appVersions={appVersions}
         counts={counts}
       />
 
