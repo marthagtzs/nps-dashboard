@@ -13,7 +13,7 @@ export async function fetchNpsData(): Promise<NpsResponse[]> {
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}?key=${API_KEY}`;
 
   const res = await fetch(url, {
-    next: { revalidate: 30 },
+    next: { revalidate: 7200 },
   });
 
   if (!res.ok) {
@@ -73,7 +73,7 @@ export async function fetchTags(): Promise<string[]> {
   const range = encodeURIComponent('Tags!A2:A');
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}?key=${API_KEY}`;
   try {
-    const res = await fetch(url, { next: { revalidate: 30 } });
+    const res = await fetch(url, { next: { revalidate: 7200 } });
     if (!res.ok) {
       // If the Tags sheet doesn't exist yet, the API returns 400.
       // Swallow and return empty so the dashboard still loads.

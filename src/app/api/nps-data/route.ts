@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { fetchNpsData, fetchTags } from '@/lib/google-sheets';
 
-export const revalidate = 30;
+export const revalidate = 7200;
 
 export async function GET() {
   try {
