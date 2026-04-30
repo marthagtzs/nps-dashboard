@@ -182,6 +182,15 @@ export default function CommentTrackingTab({
     }
   };
 
+  const fmtCreated = (d: string) => {
+    if (!d) return '—';
+    try {
+      return format(parseISO(d), 'MMM d, yyyy');
+    } catch {
+      return d;
+    }
+  };
+
   return (
     <div className="space-y-4">
       <CommentTrackingFilters
@@ -211,6 +220,9 @@ export default function CommentTrackingTab({
                 <Th>Score</Th>
                 <Th>Category</Th>
                 <Th>Identity</Th>
+                <Th>First name</Th>
+                <Th>Email</Th>
+                <Th>Created</Th>
                 <Th>Locale</Th>
                 <Th>OS</Th>
                 <Th>App ver.</Th>
@@ -218,12 +230,13 @@ export default function CommentTrackingTab({
                 <Th>Comment</Th>
                 <Th>Name</Th>
                 <Th>Follow up</Th>
+                <Th>Reviewed</Th>
               </tr>
             </thead>
             <tbody>
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={11} className="text-center py-10 text-sm text-gray-400">
+                  <td colSpan={15} className="text-center py-10 text-sm text-gray-400">
                     No responses match the current filters.
                   </td>
                 </tr>
@@ -250,6 +263,17 @@ export default function CommentTrackingTab({
                     </Td>
                     <Td className="text-xs text-gray-600">{r.category}</Td>
                     <Td className="text-xs text-gray-600 font-mono">{r.identity || '—'}</Td>
+                    <Td className="text-xs text-gray-700">{r.firstName || <span className="text-gray-400">—</span>}</Td>
+                    <Td className="text-xs text-gray-600 break-all max-w-[200px]">
+                      {r.email ? (
+                        <a href={`mailto:${r.email}`} className="hover:text-[#2a8fc7] hover:underline">
+                          {r.email}
+                        </a>
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </Td>
+                    <Td className="text-xs text-gray-600 whitespace-nowrap">{fmtCreated(r.createdDate)}</Td>
                     <Td className="text-xs text-gray-600 uppercase">{r.userLocale || '—'}</Td>
                     <Td className="text-xs text-gray-600">{r.os || '—'}</Td>
                     <Td className="text-xs text-gray-600">{r.appVersion || '—'}</Td>
@@ -287,6 +311,24 @@ export default function CommentTrackingTab({
                         />
                         {hasError && <span className="text-[10px] text-red-500">retry?</span>}
                       </label>
+                    </Td>
+                    <Td className="text-xs">
+                      {r.category === 'Promoter' ? (
+                        r.reviewClicked ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-medium">
+                            <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                            Clicked
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 text-[11px]">
+                            Saw screen
+                          </span>
+                        )
+                      ) : (
+                        <span className="text-gray-300">—</span>
+                      )}
                     </Td>
                   </tr>
                 );

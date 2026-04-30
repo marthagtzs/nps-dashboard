@@ -30,6 +30,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'name is required' }, { status: 400 });
     }
     payload = { action: 'addTag', name };
+  } else if (action === 'reviewClick') {
+    const dedupKey = ((body.dedupKey ?? '') as string);
+    if (!dedupKey) {
+      return NextResponse.json({ error: 'dedupKey is required' }, { status: 400 });
+    }
+    payload = { action: 'reviewClick', dedupKey };
   } else if (action === 'update') {
     const dedupKey = ((body.dedupKey ?? '') as string);
     if (!dedupKey) {

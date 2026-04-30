@@ -11,6 +11,10 @@ export interface NpsResponse {
   appVersion: string;
   assigned: string;
   followedUp: boolean;
+  email: string;
+  firstName: string;
+  createdDate: string;
+  reviewClicked: boolean;
 }
 
 export type TimeRangePreset = 'today' | '7d' | '30d' | '90d' | 'thisMonth' | 'lastMonth' | '';

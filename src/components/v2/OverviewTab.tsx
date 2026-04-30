@@ -14,6 +14,7 @@ import KpiCardsV2 from './KpiCardsV2';
 import NpsTrendChart from './NpsTrendChart';
 import ScoreDistributionChart from './ScoreDistributionChart';
 import NpsByGroup from './NpsByGroup';
+import ReviewCtaCard from './ReviewCtaCard';
 import CommentCategories from '../CommentCategories';
 
 interface OverviewTabProps {
@@ -74,7 +75,14 @@ export default function OverviewTab({ responses, filtered, filters, setFilters }
         <NpsByGroup title="NPS by locale" subtitle="Market differences" data={byLocale} />
       </div>
 
-      <CommentCategories responses={filtered} />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1">
+          <ReviewCtaCard responses={filtered} />
+        </div>
+        <div className="lg:col-span-2">
+          <CommentCategories responses={filtered} />
+        </div>
+      </div>
     </>
   );
 }
