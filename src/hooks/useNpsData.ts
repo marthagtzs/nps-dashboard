@@ -3,7 +3,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { NpsResponse, NpsFilters } from '@/lib/types';
 
-const POLL_INTERVAL = 30000; // 30 seconds
+// 2 minutes — keeps Fast Origin Transfer well below the 10 GB free-tier cap
+// while still feeling "live enough" for an NPS dashboard. Users can always
+// hit the Refresh button for an instant pull.
+const POLL_INTERVAL = 120000;
 
 interface UseNpsDataReturn {
   responses: NpsResponse[];
